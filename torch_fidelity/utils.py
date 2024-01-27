@@ -29,7 +29,7 @@ DEFAULT_FEATURE_EXTRACTOR = {
     "isc": "inception-v3-compat",
     "fid": "inception-v3-compat",
     "kid": "inception-v3-compat",
-    "prc": "vgg16",
+    "prc": "inception-v3-compat",
 }
 
 
