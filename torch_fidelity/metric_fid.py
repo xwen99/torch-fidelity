@@ -93,12 +93,9 @@ def fid_inputs_to_metric(feat_extractor, **kwargs):
 
     vprint(verbose, f"Extracting statistics from input 1")
     stats_1 = fid_input_id_to_statistics_cached(1, feat_extractor, feat_layer_name, **kwargs)
-    print(stats_1)
 
-    # vprint(verbose, f"Extracting statistics from input 2")
-    vprint(verbose, f"Using ADM stats from input 2")
-    stats_2 = {"mu": np.load('adm_stats.npz')['mu'], 'sigma': np.load('adm_stats.npz')['sigma']}
-    # stats_2 = fid_input_id_to_statistics_cached(2, feat_extractor, feat_layer_name, **kwargs)
+    vprint(verbose, f"Extracting statistics from input 2")
+    stats_2 = fid_input_id_to_statistics_cached(2, feat_extractor, feat_layer_name, **kwargs)
 
     metric = fid_statistics_to_metric(stats_1, stats_2, get_kwarg("verbose", kwargs))
     return metric
