@@ -93,6 +93,7 @@ def fid_inputs_to_metric(feat_extractor, **kwargs):
 
     vprint(verbose, f"Extracting statistics from input 1")
     stats_1 = fid_input_id_to_statistics_cached(1, feat_extractor, feat_layer_name, **kwargs)
+    print(stats_1)
 
     # vprint(verbose, f"Extracting statistics from input 2")
     vprint(verbose, f"Using ADM stats from input 2")
