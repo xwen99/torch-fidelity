@@ -92,7 +92,6 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             fid_stats_2 = fid_featuresdict_to_statistics_cached(
                 featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
             )
-            print(fid_stats_1)
             fid_stats_2 = {"mu": np.load('adm_stats.npz')['mu'], 'sigma': np.load('adm_stats.npz')['sigma']}
             metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg("verbose", kwargs))
             metrics.update(metric_fid)
