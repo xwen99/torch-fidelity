@@ -17,6 +17,9 @@ from torch_fidelity.utils import (
 )
 import numpy as np
 
+import os
+print(os.path.join(os.path.dirname(__file__), 'adm_stats.npz'))
+
 
 def calculate_metrics_one_feature_extractor(**kwargs):
     verbose = get_kwarg("verbose", kwargs)
