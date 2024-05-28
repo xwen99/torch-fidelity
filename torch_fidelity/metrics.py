@@ -96,6 +96,8 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             import os
             if '512' in input2:
                 adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats_512.npz')
+            elif 'ffhq' in input2:
+                adm_path = os.path.join(os.path.dirname(__file__), 'ffhq_stats.npz')
             else:
                 adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats.npz')
             fid_stats_2 = {"mu": np.load(adm_path)['mu'], 'sigma': np.load(adm_path)['sigma']}
