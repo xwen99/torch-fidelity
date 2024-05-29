@@ -95,10 +95,13 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             # FIXME: Hard coded to use ADM stats for ImageNet FID
             import os
             if '512' in input2:
+                print("Use ImageNet 512x512 statistics")
                 adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats_512.npz')
             elif 'ffhq' in input2:
+                print("Use FFHQ statistics")
                 adm_path = os.path.join(os.path.dirname(__file__), 'ffhq_stats.npz')
             else:
+                print("Use ImageNet 256x256 statistics")
                 adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats.npz')
             fid_stats_2 = {"mu": np.load(adm_path)['mu'], 'sigma': np.load(adm_path)['sigma']}
             metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg("verbose", kwargs))
