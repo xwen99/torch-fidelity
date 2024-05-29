@@ -94,6 +94,7 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             )
             # FIXME: Hard coded to use ADM stats for ImageNet FID
             import os
+            print(input2)
             if '512' in input2:
                 print("Use ImageNet 512x512 statistics")
                 adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats_512.npz')
