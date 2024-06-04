@@ -39,7 +39,7 @@ def calculate_metrics_one_feature_extractor(**kwargs):
 
     vassert(have_any, "At least one metric must be specified")
     vassert(input1 is not None or not need_input1, "First input is required for all metrics")
-    vassert(input2 is not None or not need_input2, "Second input is required for binary metrics")
+    # vassert(input2 is not None or not need_input2, "Second input is required for binary metrics")
 
     metrics = {}
 
