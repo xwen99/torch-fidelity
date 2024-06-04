@@ -40,6 +40,12 @@ def main():
         f"be provided: --input2-model-z-type, --input2-model-z-size, --input2-model-num-classes, "
         f"and --input2-model-num-samples.",
     )
+    parser.add_argument(
+        "--fid_statistics_file",
+        default=DEFAULTS["fid_statistics_file"],
+        type=str,
+        help=f"Precomputed FID statistics.",
+    )
     parser.add_argument("-b", "--batch-size", default=DEFAULTS["batch_size"], type=int, help="Batch size to use")
     pgroup = parser.add_mutually_exclusive_group()
     pgroup.add_argument("-g", "--gpu", default=None, type=str, help="Use CUDA (overrides CUDA_VISIBLE_DEVICES)")

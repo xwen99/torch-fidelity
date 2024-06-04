@@ -20,7 +20,7 @@ import numpy as np
 
 def calculate_metrics_one_feature_extractor(**kwargs):
     verbose = get_kwarg("verbose", kwargs)
-    input1, input2 = get_kwarg("input1", kwargs), get_kwarg("input2", kwargs)
+    input1, input2, fid_statistics_file = get_kwarg("input1", kwargs), get_kwarg("input2", kwargs), get_kwarg("fid_statistics_file", kwargs)
 
     have_isc = get_kwarg("isc", kwargs)
     have_fid = get_kwarg("fid", kwargs)
@@ -89,22 +89,14 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             fid_stats_1 = fid_featuresdict_to_statistics_cached(
                 featuresdict_1, cacheable_input1_name, feat_extractor, feature_layer_fid, **kwargs
             )
-            fid_stats_2 = fid_featuresdict_to_statistics_cached(
-                featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
-            )
-            # FIXME: Hard coded to use ADM stats for ImageNet FID
-            import os
-            print(input2)
-            if '512' in input2:
-                print("Use ImageNet 512x512 statistics")
-                adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats_512.npz')
-            elif 'ffhq' in input2:
-                print("Use FFHQ statistics")
-                adm_path = os.path.join(os.path.dirname(__file__), 'ffhq_stats.npz')
+            if featuresdict_2 is not None:
+                fid_stats_2 = fid_featuresdict_to_statistics_cached(
+                    featuresdict_2, cacheable_input2_name, feat_extractor, feature_layer_fid, **kwargs
+                )
+            elif fid_statistics_file is not None:
+                fid_stats_2 = {"mu": np.load(fid_statistics_file)['mu'], 'sigma': np.load(fid_statistics_file)['sigma']}
             else:
-                print("Use ImageNet 256x256 statistics")
-                adm_path = os.path.join(os.path.dirname(__file__), 'adm_stats.npz')
-            fid_stats_2 = {"mu": np.load(adm_path)['mu'], 'sigma': np.load(adm_path)['sigma']}
+                raise NotImplementedError
             metric_fid = fid_statistics_to_metric(fid_stats_1, fid_stats_2, get_kwarg("verbose", kwargs))
             metrics.update(metric_fid)
 

@@ -1,6 +1,7 @@
 DEFAULTS = {
     "input1": None,
     "input2": None,
+    "fid_statistics_file": None,
     "cuda": True,
     "batch_size": 64,
     "isc": False,
