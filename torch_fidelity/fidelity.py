@@ -16,6 +16,7 @@ from torch_fidelity.registry import (
     INTERPOLATION_REGISTRY,
     NOISE_SOURCE_REGISTRY,
 )
+from torch_fidelity.utils import get_device, is_npu_available
 
 
 def main():
@@ -329,10 +330,16 @@ def main():
     if args["gpu"] is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu"]
 
-    args["cuda"] = not args["cpu"] and os.environ.get("CUDA_VISIBLE_DEVICES", "") != ""
+    args["cuda"] = not args["cpu"] and (
+        os.environ.get("CUDA_VISIBLE_DEVICES", "") != "" or 
+        is_npu_available()
+    )
 
-    if torch.cuda.is_available() and not args["cuda"]:
+    device = get_device(**args)
+    if torch.cuda.is_available() and device == 'cpu':
         print("CUDA is available but --gpu option is not specified", file=sys.stderr)
+    elif is_npu_available() and device == 'cpu':
+        print("NPU is available but --gpu option is not specified", file=sys.stderr)
 
     metrics = calculate_metrics(**args)
 

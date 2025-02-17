@@ -4,6 +4,7 @@ import torch
 
 from torch_fidelity.generative_model_base import GenerativeModelBase
 from torch_fidelity.helpers import vassert
+from torch_fidelity.utils import get_device, to_device
 
 
 class GenerativeModelModuleWrapper(GenerativeModelBase):
@@ -44,10 +45,8 @@ class GenerativeModelModuleWrapper(GenerativeModelBase):
         if make_eval:
             self.module.eval()
         if cuda is not None:
-            if cuda:
-                self.module = self.module.cuda()
-            else:
-                self.module = self.module.cpu()
+            device = 'cpu' if not cuda else get_device(cuda=cuda)
+            self.module = to_device(self.module, device)
         self._z_size = z_size
         self._z_type = z_type
         self._num_classes = num_classes

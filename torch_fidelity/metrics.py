@@ -14,6 +14,8 @@ from torch_fidelity.utils import (
     get_cacheable_input_name,
     resolve_feature_extractor,
     resolve_feature_layer_for_metric,
+    get_device,
+    to_device,
 )
 import numpy as np
 
@@ -43,6 +45,8 @@ def calculate_metrics_one_feature_extractor(**kwargs):
 
     metrics = {}
 
+    device = get_device(**kwargs)
+
     if have_other_than_ppl:
         feature_extractor = resolve_feature_extractor(**kwargs)
         feature_layer_isc, feature_layer_fid, feature_layer_kid, feature_layer_prc = (None,) * 4
@@ -60,7 +64,7 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             feature_layer_prc = resolve_feature_layer_for_metric("prc", **kwargs)
             feature_layers.add(feature_layer_prc)
 
-        feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), **kwargs)
+        feat_extractor = create_feature_extractor(feature_extractor, list(feature_layers), device=device, **kwargs)
 
         # isc: input - featuresdict(cached) - metric
         # fid: input - featuresdict(cached) - statistics(cached) - metric
@@ -78,6 +82,11 @@ def calculate_metrics_one_feature_extractor(**kwargs):
         if input2 is not None:
             vprint(verbose, f"Extracting features from input2")
             featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
+
+        if device != 'cpu':
+            featuresdict_1 = to_device(featuresdict_1, device)
+            if featuresdict_2 is not None:
+                featuresdict_2 = to_device(featuresdict_2, device)
 
         if have_isc:
             metric_isc = isc_featuresdict_to_metric(featuresdict_1, feature_layer_isc, **kwargs)
