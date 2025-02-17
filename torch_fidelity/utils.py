@@ -76,6 +76,7 @@ def to_device(tensor_or_module, device_str):
         Tensor or module on target device
     """
     if device_str == 'npu':
+        import torch_npu
         return tensor_or_module.npu()
     elif device_str == 'cuda':
         return tensor_or_module.cuda()
