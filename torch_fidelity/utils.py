@@ -145,8 +145,9 @@ def create_sample_similarity(name, cuda=True, **kwargs):
     cls = SAMPLE_SIMILARITY_REGISTRY[name]
     sample_similarity = cls(name, **kwargs)
     sample_similarity.eval()
-    if cuda:
-        sample_similarity.cuda()
+    device = get_device(cuda=cuda)
+    if device != 'cpu':
+        sample_similarity = to_device(sample_similarity, device)
     return sample_similarity
 
 
@@ -184,12 +185,14 @@ def get_featuresdict_from_dataset(input, feat_extractor, batch_size, cuda, save_
 
     out = None
 
+    device = get_device(cuda=cuda)
+
     with tqdm(
         disable=not verbose, leave=False, unit="samples", total=len(input), desc="Processing samples"
     ) as t, torch.no_grad():
         for bid, batch in enumerate(dataloader):
-            if cuda:
-                batch = batch.cuda(non_blocking=True)
+            if device != 'cpu':
+                batch = to_device(batch, device)
 
             features = feat_extractor(batch)
             featuresdict = feat_extractor.convert_features_tuple_to_dict(features)
