@@ -10,6 +10,8 @@ from torch_fidelity.utils import (
     create_sample_similarity,
     prepare_input_descriptor_from_input_id,
     prepare_input_from_descriptor,
+    get_device,
+    to_device,
 )
 
 KEY_METRIC_PPL_RAW = "perceptual_path_length_raw"
@@ -43,8 +45,10 @@ def calculate_ppl(input_id, **kwargs):
         "model and a set of input1_model_* arguments",
     )
 
-    if cuda:
-        model.cuda()
+    device = get_device(**kwargs)
+    
+    if device != 'cpu':
+        model = to_device(model, device)
 
     input_model_num_samples = input_desc["input_model_num_samples"]
     input_model_num_classes = model.num_classes
@@ -97,11 +101,11 @@ def calculate_ppl(input_id, **kwargs):
             if is_cond:
                 batch_labels = labels[begin_id:end_id]
 
-            if cuda:
-                batch_lat_e0 = batch_lat_e0.cuda(non_blocking=True)
-                batch_lat_e1 = batch_lat_e1.cuda(non_blocking=True)
+            if device != 'cpu':
+                batch_lat_e0 = to_device(batch_lat_e0, device)
+                batch_lat_e1 = to_device(batch_lat_e1, device)
                 if is_cond:
-                    batch_labels = batch_labels.cuda(non_blocking=True)
+                    batch_labels = to_device(batch_labels, device)
 
             if is_cond:
                 rgb_e01 = model.forward(

@@ -33,6 +33,55 @@ DEFAULT_FEATURE_EXTRACTOR = {
 }
 
 
+import importlib.util
+
+def is_npu_available():
+    """Check if NPU (Neural Processing Unit) is available.
+    
+    Returns:
+        bool: True if torch_npu is available, False otherwise
+    """
+    return importlib.util.find_spec("torch_npu") is not None
+
+
+def get_device(**kwargs):
+    """Determine the appropriate device based on availability and settings.
+    
+    Args:
+        **kwargs: Keyword arguments containing 'cuda' flag
+    
+    Returns:
+        str: Device string ('cuda', 'npu', or 'cpu')
+    """
+    from torch_fidelity.helpers import get_kwarg
+    
+    cuda = get_kwarg('cuda', kwargs)
+    if not cuda:
+        return 'cpu'
+
+    if torch.cuda.is_available():
+        return 'cuda'
+    elif is_npu_available():
+        return 'npu'
+    return 'cpu'
+
+def to_device(tensor_or_module, device_str):
+    """Move tensor or module to specified device.
+    
+    Args:
+        tensor_or_module: PyTorch tensor or module
+        device_str (str): Target device ('cuda', 'npu', or 'cpu')
+    
+    Returns:
+        Tensor or module on target device
+    """
+    if device_str == 'npu':
+        return tensor_or_module.npu()
+    elif device_str == 'cuda':
+        return tensor_or_module.cuda()
+    return tensor_or_module.cpu()
+
+
 def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lossy=None, verbose=True):
     vassert(type(samples_find_ext) is str and samples_find_ext != "", "Sample extensions not specified")
     vassert(
@@ -69,7 +118,7 @@ def glob_samples_paths(path, samples_find_deep, samples_find_ext, samples_ext_lo
     return files
 
 
-def create_feature_extractor(name, list_features, cuda=True, **kwargs):
+def create_feature_extractor(name, list_features, device='cpu', **kwargs):
     verbose = get_kwarg("verbose", kwargs)
     vassert(name in FEATURE_EXTRACTORS_REGISTRY, f'Feature extractor "{name}" not registered')
     vprint(verbose, f'Creating feature extractor "{name}" with features {list_features}')
@@ -77,12 +126,14 @@ def create_feature_extractor(name, list_features, cuda=True, **kwargs):
     feat_extractor = cls(name, list_features, **kwargs)
     feat_extractor.requires_grad_(False)
     feat_extractor.eval()
-    if cuda:
-        feat_extractor.cuda()
+    
+    if device != 'cpu':
+        feat_extractor = to_device(feat_extractor, device)
+        
     if get_kwarg("feature_extractor_compile", kwargs) and feat_extractor.can_be_compiled():
         feat_extractor = torch_maybe_compile(
             feat_extractor,
-            feat_extractor.get_dummy_input_for_compile().to(device="cuda" if cuda else "cpu"),
+            feat_extractor.get_dummy_input_for_compile().to(device=device),
             verbose,
         )
     return feat_extractor
@@ -170,8 +221,10 @@ def get_featuresdict_from_generative_model(gen_model, feat_extractor, num_sample
 
     rng = np.random.RandomState(rng_seed)
 
-    if cuda:
-        gen_model.cuda()
+    device = get_device(cuda=cuda)
+    
+    if device != 'cpu':
+        gen_model = to_device(gen_model, device)
 
     with tqdm(
         disable=not verbose, leave=False, unit="samples", total=num_samples, desc="Processing samples"
@@ -181,13 +234,13 @@ def get_featuresdict_from_generative_model(gen_model, feat_extractor, num_sample
             sz = sample_end - sample_start
 
             noise = NOISE_SOURCE_REGISTRY[gen_model.z_type](rng, (sz, gen_model.z_size))
-            if cuda:
-                noise = noise.cuda(non_blocking=True)
+            if device != 'cpu':
+                noise = to_device(noise, device)
             gen_args = [noise]
             if gen_model.num_classes > 0:
                 cond_labels = torch.from_numpy(rng.randint(low=0, high=gen_model.num_classes, size=(sz,), dtype=np.int))
-                if cuda:
-                    cond_labels = cond_labels.cuda(non_blocking=True)
+                if device != 'cpu':
+                    cond_labels = to_device(cond_labels, device)
                 gen_args.append(cond_labels)
 
             fakes = gen_model(*gen_args)
