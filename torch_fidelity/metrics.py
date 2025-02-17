@@ -83,11 +83,6 @@ def calculate_metrics_one_feature_extractor(**kwargs):
             vprint(verbose, f"Extracting features from input2")
             featuresdict_2 = extract_featuresdict_from_input_id_cached(2, feat_extractor, **kwargs)
 
-        if device != 'cpu':
-            featuresdict_1 = to_device(featuresdict_1, device)
-            if featuresdict_2 is not None:
-                featuresdict_2 = to_device(featuresdict_2, device)
-
         if have_isc:
             metric_isc = isc_featuresdict_to_metric(featuresdict_1, feature_layer_isc, **kwargs)
             metrics.update(metric_isc)
